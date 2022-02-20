@@ -1,6 +1,7 @@
 package main
 
 import (
+	"KeyValueHTTPStore/internal/command"
 	"KeyValueHTTPStore/internal/store"
 	"context"
 	"fmt"
@@ -13,8 +14,8 @@ func main() {
 	go storage.Start(ctx)
 	time.Sleep(time.Second / 2)
 
-	cmds := []store.ICommand{
-		&store.SetCommand{
+	cmds := []command.ICommand{
+		&command.SetCommand{
 			Key: "test",
 			Val: "test",
 		},
@@ -23,8 +24,10 @@ func main() {
 	result, err := storage.Execute(cmds)
 
 	fmt.Printf("Res: %v\n------\nErr: %v\n\n\n", result, err)
-	cmds = []store.ICommand{
-		&store.GetCommand{
+
+	time.Sleep(time.Second)
+	cmds = []command.ICommand{
+		&command.GetCommand{
 			Key: "test",
 		},
 	}
