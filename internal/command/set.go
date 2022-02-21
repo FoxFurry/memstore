@@ -17,6 +17,10 @@ func (cmd *set) Key() string {
 	return cmd.key
 }
 
+func (cmd *set) Type() CommandType {
+	return Write
+}
+
 func Set(key, value string) Command {
 	return &set{
 		pair: pair{

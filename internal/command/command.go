@@ -5,8 +5,16 @@ import (
 	"strings"
 )
 
+type CommandType int
+
+const (
+	Read CommandType = iota
+	Write
+)
+
 type Command interface {
 	Execute(storage *btree.BTree) (string, error)
+	Type() CommandType
 	Key() string
 }
 

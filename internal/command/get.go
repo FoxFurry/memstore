@@ -28,6 +28,10 @@ func (cmd *get) Key() string {
 	return cmd.key
 }
 
+func (cmd *get) Type() CommandType {
+	return Write
+}
+
 func Get(key string) Command {
 	return &get{
 		pair: pair{
