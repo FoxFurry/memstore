@@ -1,12 +1,27 @@
 package command
 
-import "sync"
+import (
+	"github.com/google/btree"
+)
 
-type SetCommand struct {
-	Key, Val string
+type set struct {
+	pair
 }
 
-func (c *SetCommand) Execute(storeCtx *sync.Map) (string, error) {
-	storeCtx.Store(c.Key, c.Val)
-	return c.Val, nil
+func (cmd *set) Execute(storage *btree.BTree) (string, error) {
+	storage.ReplaceOrInsert(cmd.pair)
+	return cmd.pair.value, nil
+}
+
+func (cmd *set) Key() string {
+	return cmd.key
+}
+
+func Set(key, value string) Command {
+	return &set{
+		pair: pair{
+			key:   key,
+			value: value,
+		},
+	}
 }

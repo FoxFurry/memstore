@@ -1,11 +1,37 @@
 package command
 
-import "github.com/google/btree"
+import (
+	"errors"
+	"github.com/google/btree"
+)
 
-type GetCommand struct {
-	Key string
+type get struct {
+	pair
 }
 
-func (c *GetCommand) Execute(storage *btree.BTree) (string, error) {
-	return storage.Get(btree.).(string), nil
+func (c *get) Execute(storage *btree.BTree) (string, error) {
+	result := storage.Get(c.pair)
+
+	if result == nil {
+		return "", nil
+	}
+
+	resPair, ok := result.(pair)
+	if !ok {
+		return "", errors.New("failed to cast result")
+	}
+
+	return resPair.value, nil
+}
+
+func (cmd *get) Key() string {
+	return cmd.key
+}
+
+func Get(key string) Command {
+	return &get{
+		pair: pair{
+			key: key,
+		},
+	}
 }
