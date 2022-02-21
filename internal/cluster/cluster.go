@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"KeyValueHTTPStore/internal/command"
 	"context"
 	"errors"
 	"fmt"
@@ -10,7 +11,7 @@ import (
 )
 
 type Cluster interface {
-	Execute(commands []interface{}) ([]string, error)
+	Execute(cmds []command.Command) ([]string, error)
 	Initialize(ctx context.Context) error
 }
 
@@ -23,15 +24,13 @@ func New() Cluster {
 	return &cluster{}
 }
 
-func (c *cluster) Execute(commands []interface{}) ([]string, error) {
-	var (
-		results         []string
-		commandsPerNode map[int][]interface{}
-	)
+func (c *cluster) Execute(cmds []command.Command) ([]string, error) {
+	results := make([]string, len(cmds))
+	commandsPerNode := make(map[int][]command.Command)
 
-	for _, cmd := range commands {
-		nodeString := c.cHasher.LocateKey([]byte("test")).String() // Get the ID of selected page
-		nodeID, err := strconv.Atoi(nodeString)                    // Convert ID to int
+	for idx, cmd := range cmds {
+		nodeString := c.cHasher.LocateKey([]byte(cmd.Key())).String() // Get the ID of selected page
+		nodeID, err := strconv.Atoi(nodeString)                       // Convert ID to int
 		if err != nil {
 			return nil, errors.New(fmt.Sprintf("failed to convert node string to int: %s", nodeString))
 		}
@@ -44,7 +43,7 @@ func (c *cluster) Execute(commands []interface{}) ([]string, error) {
 		}
 
 		commandsPerNode[nodeID] = append(commandsPerNode[nodeID], cmd)
-		results = append(results, result) // Add to result array
+		results[idx] = result // Add to result array
 	}
 
 	for nodeID, cmds := range commandsPerNode {
@@ -67,8 +66,11 @@ func (c *cluster) Initialize(ctx context.Context) error {
 	c.cHasher = consistent.New(nil, hasherConfig)
 
 	for i := 0; i < nodeNum; i++ {
-		c.nodes = append(c.nodes, newNode(ctx, i)) // Add a new page to cluster
-		c.cHasher.Add(c.nodes[i])                  // And add this page to consistent hasher
+		newNode := newNode(i)
+		go newNode.startJournal(ctx)
+
+		c.nodes = append(c.nodes, newNode) // Add a new page to cluster
+		c.cHasher.Add(c.nodes[i])          // And add this page to consistent hasher
 	}
 
 	return nil
