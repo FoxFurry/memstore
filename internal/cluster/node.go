@@ -1,17 +1,21 @@
 package cluster
 
 import (
+	"KeyValueHTTPStore/internal/command"
 	"context"
 	"github.com/google/btree"
+	"log"
 	"strconv"
 	"sync"
 )
 
 type inode interface {
-	execute(command interface{}) (string, error)
-	addToJournal(commands []interface{})
-	snapshot() inode
 	startJournal(ctx context.Context)
+
+	execute(cmd command.Command) (string, error)
+	addToJournal(cmds []command.Command)
+
+	snapshot() inode
 	String() string
 }
 
@@ -19,21 +23,21 @@ type node struct {
 	storageMutex sync.RWMutex
 	storage      *btree.BTree
 	nodeID       int
-	cmdQueue     chan []interface{}
+	cmdQueue     chan []command.Command
 }
 
-func newNode(ctx context.Context, ID int) inode {
+func newNode(ID int) inode {
 	n := &node{
 		nodeID:       ID,
 		storage:      btree.New(32), // TODO: Why do I use 32?
 		storageMutex: sync.RWMutex{},
+		cmdQueue:     make(chan []command.Command, 50),
 	}
-	n.startJournal(ctx)
 	return n
 }
 
-func (n *node) execute(command interface{}) (string, error) {
-	return "", nil
+func (n *node) execute(cmd command.Command) (string, error) { // IMPORTANT: This function doesn't lock the mutex
+	return cmd.Execute(n.storage)
 }
 
 func (n *node) snapshot() inode {
@@ -47,22 +51,30 @@ func (n *node) snapshot() inode {
 	}
 }
 
-func (n *node) addToJournal(cmds []interface{}) {
+func (n *node) addToJournal(cmds []command.Command) {
 	n.cmdQueue <- cmds
 }
 
 func (n *node) startJournal(ctx context.Context) {
+	log.Printf("Starting journal #%d", n.nodeID)
+
 	for {
 		select {
 		case block := <-n.cmdQueue:
 			n.storageMutex.Lock()
 
-			for _, _ := range block {
-				// execute
+			log.Printf("Journal #%d executing command block", n.nodeID)
+			for _, cmd := range block {
+				_, err := n.execute(cmd)
 
+				if err != nil {
+					log.Panicf("Pizdec deadlock nafig: %v", err)
+				}
 			}
 
 			n.storageMutex.Unlock()
+		case <-ctx.Done():
+			log.Printf("Closing journal #%d", n.nodeID)
 		}
 	}
 }
