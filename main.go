@@ -13,8 +13,6 @@ func main() {
 	storage := cluster.New()
 	storage.Initialize(ctx)
 
-	time.Sleep(time.Microsecond * 200)
-
 	cmds := []command.Command{
 		command.Set("test", "testv"),
 		command.Set("test312we", "testv"),
