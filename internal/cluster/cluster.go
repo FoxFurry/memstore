@@ -12,7 +12,7 @@ import (
 
 type Cluster interface {
 	Execute(cmds []command.Command) ([]string, error)
-	Initialize(ctx context.Context) error
+	Initialize(ctx context.Context)
 }
 
 type cluster struct {
@@ -30,30 +30,35 @@ func (c *cluster) Execute(cmds []command.Command) ([]string, error) {
 
 	for idx, cmd := range cmds {
 		nodeString := c.cHasher.LocateKey([]byte(cmd.Key())).String() // Get the ID of selected page
-		nodeID, err := strconv.Atoi(nodeString)                       // Convert ID to int
+
+		nodeID, err := strconv.Atoi(nodeString) // Convert ID to int
 		if err != nil {
 			return nil, errors.New(fmt.Sprintf("failed to convert node string to int: %s", nodeString))
 		}
 
-		nodeSnapshot := c.nodes[nodeID].snapshot() // Take snapshot of selected page
+		targetNode := c.nodes[nodeID].snapshot() // and snapshot for write commands
 
-		result, err := nodeSnapshot.execute(cmd) // Execute command on snapshot of selected page
+		result, err := targetNode.execute(cmd) // Execute command on snapshot of selected page
 		if err != nil {
 			return nil, err
 		}
 
-		commandsPerNode[nodeID] = append(commandsPerNode[nodeID], cmd)
-		results[idx] = result // Add to result array
+		results[idx] = result                                          // Add to result array
+		commandsPerNode[nodeID] = append(commandsPerNode[nodeID], cmd) // Also, our journal needs only write commands
+
+		//if cmd.Type() == command.Write {
+		//	commandsPerNode[nodeID] = append(commandsPerNode[nodeID], cmd) // Also, our journal needs only write commands
+		//}
 	}
 
 	for nodeID, cmds := range commandsPerNode {
-		c.nodes[nodeID].addToJournal(cmds) // The commands are valid, so we add them to execute on real storage
+		c.nodes[nodeID].journal() <- cmds // The commands are valid, so we add them to execute on real storage
 	}
 
 	return results, nil
 }
 
-func (c *cluster) Initialize(ctx context.Context) error {
+func (c *cluster) Initialize(ctx context.Context) {
 	nodeNum := 4 // TODO: Find the way to calculate best number of nodes for different situations
 
 	hasherConfig := consistent.Config{
@@ -72,8 +77,6 @@ func (c *cluster) Initialize(ctx context.Context) error {
 		c.nodes = append(c.nodes, newNode) // Add a new page to cluster
 		c.cHasher.Add(c.nodes[i])          // And add this page to consistent hasher
 	}
-
-	return nil
 }
 
 type hasher struct{}
