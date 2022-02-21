@@ -5,12 +5,16 @@ import (
 	"strings"
 )
 
-type ICommand interface {
+type Command interface {
 	Execute(storage *btree.BTree) (string, error)
+	Key() string
 }
 
-type Key string
+type pair struct {
+	key   string
+	value string
+}
 
-func (k Key) Less(b btree.Item) bool {
-	return strings.Compare(string(k), string(b.(Key))) > 0 // Fucking ugly
+func (p pair) Less(b btree.Item) bool {
+	return strings.Compare(p.key, b.(pair).key) < 0 // Fucking ugly
 }
