@@ -24,7 +24,7 @@ func main() {
 
 	result, err := storage.Execute(cmds)
 
-	time.Sleep(time.Nanosecond * 150)
+	time.Sleep(time.Microsecond * 1000)
 
 	fmt.Printf("Res: %v\n------\nErr: %v\n\n\n", result, err)
 
