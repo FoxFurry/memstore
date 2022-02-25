@@ -10,7 +10,7 @@ type set struct {
 
 func (cmd *set) Execute(storage *btree.BTree) (string, error) {
 	storage.ReplaceOrInsert(cmd.pair)
-	return cmd.pair.value, nil
+	return cmd.value, nil
 }
 
 func (cmd *set) Key() string {

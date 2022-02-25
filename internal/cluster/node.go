@@ -19,19 +19,23 @@ type inode interface {
 }
 
 type node struct {
-	storageMutex sync.RWMutex
-	storage      *btree.BTree
-	nodeID       int
-	journalQueue chan []command.Command
+	cloneMutex     sync.RWMutex
+	storageMutex   sync.RWMutex
+	storage, clone *btree.BTree
+	nodeID         int
+	journalQueue   chan []command.Command
 }
 
 func newNode(ID int) inode {
 	n := &node{
 		nodeID:       ID,
 		storage:      btree.New(32), // TODO: Why do I use 32?
+		cloneMutex:   sync.RWMutex{},
 		storageMutex: sync.RWMutex{},
 		journalQueue: make(chan []command.Command, 50), // TODO: Why 50??? So many questions
 	}
+	n.clone = n.storage.Clone()
+
 	return n
 }
 
@@ -44,36 +48,35 @@ func (n *node) journal() chan<- []command.Command {
 }
 
 func (n *node) snapshot() inode {
-	n.storageMutex.RLock()
-	defer n.storageMutex.RUnlock()
+	n.cloneMutex.RLock()
+	clone := n.clone.Clone()
+	n.cloneMutex.RUnlock()
 
 	return &node{
-		storage:      n.storage.Clone(), // Lazy cow copy
-		nodeID:       n.nodeID,          // Snapshot should have same ID
-		storageMutex: sync.RWMutex{},    // Each snapshot will have each own mutex
+		storage:    clone,          // Lazy cow copy
+		nodeID:     n.nodeID,       // Snapshot should have same ID
+		cloneMutex: sync.RWMutex{}, // Each snapshot will have each own mutex
+		clone:      nil,            // snapshot should not have any clones
 	}
 }
 
 func (n *node) startJournal(ctx context.Context) {
-	log.Printf("Starting journal #%d", n.nodeID)
-
 	for {
 		select {
 		case block := <-n.journalQueue:
-			log.Printf("Journal #%d executing command block", n.nodeID)
-
-			n.storageMutex.Lock() // Cannot take snapshots during block execution
 
 			for _, cmd := range block {
-				_, err := n.execute(cmd)
+				_, err := cmd.Execute(n.storage)
 				if err != nil {
 					log.Panicf("Pizdec deadlock nafig: %v", err)
 				}
 			}
 
-			n.storageMutex.Unlock()
+			n.cloneMutex.Lock()
+			n.clone = n.storage.Clone()
+			n.cloneMutex.Unlock()
 		case <-ctx.Done():
-			log.Printf("Closing journal #%d", n.nodeID)
+			return
 		}
 	}
 }
