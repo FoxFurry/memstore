@@ -5,8 +5,13 @@ import (
 	"KeyValueHTTPStore/internal/command"
 	"context"
 	"fmt"
+	"runtime"
 	"time"
 )
+
+func init() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+}
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -15,22 +20,16 @@ func main() {
 
 	cmds := []command.Command{
 		command.Set("test", "testv"),
-		command.Set("test312we", "testv"),
-		command.Set("tesdsadast", "testv"),
-		command.Set("test32", "testv"),
-		command.Set("teasdast", "testv"),
-		command.Set("@jmvj785n2", "testv2"),
 	}
 
 	result, err := storage.Execute(cmds)
 
-	time.Sleep(time.Microsecond * 1000)
+	time.Sleep(time.Nanosecond * 500)
 
 	fmt.Printf("Res: %v\n------\nErr: %v\n\n\n", result, err)
 
 	cmds = []command.Command{
 		command.Get("test"),
-		command.Get("@jmvj785n2"),
 	}
 
 	result, err = storage.Execute(cmds)
