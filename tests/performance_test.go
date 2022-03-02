@@ -10,15 +10,16 @@ import (
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
+
 }
 
-func Benchmark_Performance(t *testing.B) {
+func Benchmark_Performance_Get(t *testing.B) {
 	ctx, cancel := context.WithCancel(context.Background())
 	storage := cluster.New()
 	storage.Initialize(ctx)
 
 	cmds := []command.Command{
-		command.Set("test", "testv"),
+		command.Get("foo"),
 	}
 
 	for i := 0; i < t.N; i++ {
@@ -26,4 +27,18 @@ func Benchmark_Performance(t *testing.B) {
 	}
 
 	cancel()
+}
+
+func Benchmark_Performance_Set(t *testing.B) {
+	ctx, _ := context.WithCancel(context.Background())
+	storage := cluster.New()
+	storage.Initialize(ctx)
+
+	cmds := []command.Command{
+		command.Set("foo", "bar"),
+	}
+
+	for i := 0; i < t.N; i++ {
+		storage.Execute(cmds)
+	}
 }
