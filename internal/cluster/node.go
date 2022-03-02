@@ -71,7 +71,7 @@ func (n *node) startJournal(ctx context.Context) {
 			for _, cmd := range block {
 				_, err := cmd.Execute(n.storage)
 				if err != nil {
-					log.Panicf("Pizdec deadlock nafig: %v", err)
+					log.Panicf("%s: %s", errExecutionFailed, err)
 				}
 			}
 

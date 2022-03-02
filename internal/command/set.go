@@ -13,10 +13,6 @@ func (cmd *set) Execute(storage *btree.BTree) (string, error) {
 	return cmd.value, nil
 }
 
-func (cmd *set) Key() string {
-	return cmd.key
-}
-
 func (cmd *set) Type() CommandType {
 	return Write
 }

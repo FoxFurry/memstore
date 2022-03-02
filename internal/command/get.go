@@ -24,10 +24,6 @@ func (c *get) Execute(storage *btree.BTree) (string, error) {
 	return resPair.value, nil
 }
 
-func (cmd *get) Key() string {
-	return cmd.key
-}
-
 func (cmd *get) Type() CommandType {
 	return Write
 }

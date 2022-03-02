@@ -4,10 +4,14 @@ import (
 	"KeyValueHTTPStore/internal/command"
 	"context"
 	"errors"
-	"fmt"
 	"github.com/buraksezer/consistent"
 	"github.com/cespare/xxhash"
 	"strconv"
+)
+
+var (
+	errIdConversionFailed = errors.New("failed to convert node string to int")
+	errExecutionFailed    = errors.New("command execution failed")
 )
 
 type Cluster interface {
@@ -33,7 +37,7 @@ func (c *cluster) Execute(cmds []command.Command) ([]string, error) {
 
 		nodeID, err := strconv.Atoi(nodeString) // Convert ID to int
 		if err != nil {
-			return nil, errors.New(fmt.Sprintf("failed to convert node string to int: %s", nodeString))
+			return nil, errIdConversionFailed
 		}
 
 		targetNode := c.nodes[nodeID]
@@ -43,7 +47,7 @@ func (c *cluster) Execute(cmds []command.Command) ([]string, error) {
 			return nil, err
 		}
 
-		results[idx] = result
+		results[idx] = result // Write result to results array
 
 		if cmd.Type() == command.Write {
 			commandsPerNode[targetNode] = append(commandsPerNode[targetNode], cmd) // Also, our journal needs only write commands
