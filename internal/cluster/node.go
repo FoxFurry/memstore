@@ -13,50 +13,53 @@ type inode interface {
 	startJournal(ctx context.Context)
 
 	execute(cmd command.Command) (string, error)
-	journal() chan<- []command.Command
+	addToJournal(block []command.Command)
 	snapshot() inode
 	String() string
 }
 
 type node struct {
-	cloneMutex     sync.RWMutex
-	storageMutex   sync.RWMutex
-	storage, clone *btree.BTree
-	nodeID         int
-	journalQueue   chan []command.Command
+	storageMutex sync.RWMutex
+	storage      *btree.BTree
+	nodeID       int
+	journalQueue chan []command.Command
 }
 
 func newNode(ID int) inode {
 	n := &node{
 		nodeID:       ID,
 		storage:      btree.New(32), // TODO: Why do I use 32?
-		cloneMutex:   sync.RWMutex{},
 		storageMutex: sync.RWMutex{},
-		journalQueue: make(chan []command.Command, 50), // TODO: Why 50??? So many questions
+		journalQueue: make(chan []command.Command, 5), // TODO: Why 50??? So many questions
 	}
-	n.clone = n.storage.Clone()
 
 	return n
 }
 
-func (n *node) execute(cmd command.Command) (string, error) { // IMPORTANT: This function doesn't lock the mutex
+func (n *node) execute(cmd command.Command) (string, error) {
+	if cmd.Type() == command.Write {
+		n.storageMutex.Lock()
+		defer n.storageMutex.Unlock()
+	} else {
+		n.storageMutex.RLock()
+		defer n.storageMutex.RUnlock()
+	}
+
 	return cmd.Execute(n.storage)
 }
 
-func (n *node) journal() chan<- []command.Command {
-	return n.journalQueue
+func (n *node) addToJournal(block []command.Command) {
+	n.journalQueue <- block
 }
 
 func (n *node) snapshot() inode {
-	n.cloneMutex.RLock()
-	clone := n.clone.Clone()
-	n.cloneMutex.RUnlock()
+	n.storageMutex.RLock()
+	defer n.storageMutex.RUnlock()
 
 	return &node{
-		storage:    clone,          // Lazy cow copy
-		nodeID:     n.nodeID,       // Snapshot should have same ID
-		cloneMutex: sync.RWMutex{}, // Each snapshot will have each own mutex
-		clone:      nil,            // snapshot should not have any clones
+		storage:      n.storage.Clone(), // Lazy cow copy
+		nodeID:       n.nodeID,          // Snapshot should have same ID
+		storageMutex: sync.RWMutex{},    // Each snapshot will have each own mutex
 	}
 }
 
@@ -72,9 +75,6 @@ func (n *node) startJournal(ctx context.Context) {
 				}
 			}
 
-			n.cloneMutex.Lock()
-			n.clone = n.storage.Clone()
-			n.cloneMutex.Unlock()
 		case <-ctx.Done():
 			return
 		}

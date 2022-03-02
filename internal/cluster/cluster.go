@@ -26,8 +26,8 @@ func New() Cluster {
 
 func (c *cluster) Execute(cmds []command.Command) ([]string, error) {
 	results := make([]string, len(cmds))
-	commandsPerNode := make(map[int][]command.Command)
-
+	commandsPerNode := make(map[inode][]command.Command, len(cmds))
+	_ = commandsPerNode
 	for idx, cmd := range cmds {
 		nodeString := c.cHasher.LocateKey([]byte(cmd.Key())).String() // Get the ID of selected page
 
@@ -36,23 +36,22 @@ func (c *cluster) Execute(cmds []command.Command) ([]string, error) {
 			return nil, errors.New(fmt.Sprintf("failed to convert node string to int: %s", nodeString))
 		}
 
-		targetNode := c.nodes[nodeID].snapshot() // and snapshot for write commands
+		targetNode := c.nodes[nodeID]
 
 		result, err := targetNode.execute(cmd) // Execute command on snapshot of selected page
 		if err != nil {
 			return nil, err
 		}
 
-		results[idx] = result                                          // Add to result array
-		commandsPerNode[nodeID] = append(commandsPerNode[nodeID], cmd) // Also, our journal needs only write commands
+		results[idx] = result
 
-		//if cmd.Type() == command.Write {
-		//	commandsPerNode[nodeID] = append(commandsPerNode[nodeID], cmd) // Also, our journal needs only write commands
-		//}
+		if cmd.Type() == command.Write {
+			commandsPerNode[targetNode] = append(commandsPerNode[targetNode], cmd) // Also, our journal needs only write commands
+		}
 	}
 
-	for nodeID, cmds := range commandsPerNode {
-		c.nodes[nodeID].journal() <- cmds // The commands are valid, so we add them to execute on real storage
+	for targetNode, cmds := range commandsPerNode {
+		targetNode.addToJournal(cmds) // The commands are valid, so we add them to execute on real storage
 	}
 
 	return results, nil
