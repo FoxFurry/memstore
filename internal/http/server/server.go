@@ -25,6 +25,7 @@ func New(ctx context.Context) Cluster {
 
 func (c *cluster) Start() error {
 	server := gin.Default()
+
 	server.POST("/execute", c.handleExecute)
 
 	server.Run()
@@ -43,6 +44,7 @@ func (c *cluster) handleExecute(ctx *gin.Context) {
 	execute, err := c.service.Execute(request.Commands)
 	if err != nil {
 		httperr.InternalError(ctx, httperr.Wrap(err, "internal error"))
+		return
 	}
 
 	ctx.JSON(http.StatusOK, model.TransactionResponse{Results: execute})
