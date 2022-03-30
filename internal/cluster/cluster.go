@@ -1,9 +1,9 @@
 package cluster
 
 import (
-	"KeyValueHTTPStore/internal/command"
 	"context"
 	"errors"
+	"github.com/FoxFurry/GoKeyValueStore/internal/command"
 	"github.com/buraksezer/consistent"
 	"github.com/cespare/xxhash"
 	"strconv"
@@ -29,18 +29,18 @@ func New() Cluster {
 }
 
 func (c *cluster) Execute(cmds []command.Command) ([]string, error) {
-	results := make([]string, len(cmds))
-	commandsPerNode := make(map[inode][]command.Command, len(cmds))
-	_ = commandsPerNode
-	for idx, cmd := range cmds {
-		nodeString := c.cHasher.LocateKey([]byte(cmd.Key())).String() // Get the ID of selected page
+	results := make([]string, len(cmds))                          // Stores the results
+	commandsForNode := make(map[int][]command.Command, len(cmds)) // Maps all commands to their nodes
 
-		nodeID, err := strconv.Atoi(nodeString) // Convert ID to int
+	for idx, cmd := range cmds {
+		nodeString := c.cHasher.LocateKey(cmd.Key()).String() // Find node for specified key
+
+		nodeID, err := strconv.Atoi(nodeString) // Convert node string to int
 		if err != nil {
 			return nil, errIdConversionFailed
 		}
 
-		targetNode := c.nodes[nodeID]
+		targetNode := c.nodes[nodeID].snapshot()
 
 		result, err := targetNode.execute(cmd) // Execute command on snapshot of selected page
 		if err != nil {
@@ -50,12 +50,12 @@ func (c *cluster) Execute(cmds []command.Command) ([]string, error) {
 		results[idx] = result // Write result to results array
 
 		if cmd.Type() == command.Write {
-			commandsPerNode[targetNode] = append(commandsPerNode[targetNode], cmd) // Also, our journal needs only write commands
+			commandsForNode[nodeID] = append(commandsForNode[nodeID], cmd) // Also, our journal needs only write commands
 		}
 	}
 
-	for targetNode, cmds := range commandsPerNode {
-		targetNode.addToJournal(cmds) // The commands are valid, so we add them to execute on real storage
+	for nodeID, commands := range commandsForNode {
+		c.nodes[nodeID].addToJournal(commands) // The commands are valid, so we add them to execute on real storage
 	}
 
 	return results, nil

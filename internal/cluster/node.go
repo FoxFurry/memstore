@@ -1,8 +1,8 @@
 package cluster
 
 import (
-	"KeyValueHTTPStore/internal/command"
 	"context"
+	"github.com/FoxFurry/GoKeyValueStore/internal/command"
 	"github.com/google/btree"
 	"log"
 	"strconv"
@@ -28,9 +28,9 @@ type node struct {
 func newNode(ID int) inode {
 	n := &node{
 		nodeID:       ID,
-		storage:      btree.New(32), // TODO: Why do I use 32?
+		storage:      btree.New(4), // TODO: Why do I use 32?
 		storageMutex: sync.RWMutex{},
-		journalQueue: make(chan []command.Command, 5), // TODO: Why 50??? So many questions
+		journalQueue: make(chan []command.Command, 50), // TODO: Why 50??? So many questions
 	}
 
 	return n

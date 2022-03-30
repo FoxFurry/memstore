@@ -25,7 +25,7 @@ const (
 type Command interface {
 	Execute(storage *btree.BTree) (string, error)
 	Type() CommandType
-	Key() string
+	Key() []byte
 }
 
 type pair struct {
@@ -39,6 +39,6 @@ func (p pair) Less(b btree.Item) bool {
 }
 
 // Key implements Command interface
-func (p pair) Key() string {
-	return p.key
+func (p pair) Key() []byte {
+	return []byte(p.key)
 }

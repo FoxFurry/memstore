@@ -25,7 +25,7 @@ func (c *get) Execute(storage *btree.BTree) (string, error) {
 }
 
 func (cmd *get) Type() CommandType {
-	return Write
+	return Read
 }
 
 func Get(key string) Command {
