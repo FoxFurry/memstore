@@ -2,10 +2,11 @@ package service
 
 import (
 	"context"
-	"errors"
 	"github.com/FoxFurry/GoKeyValueStore/internal/cluster"
 	"github.com/FoxFurry/GoKeyValueStore/internal/command"
+	"github.com/FoxFurry/GoKeyValueStore/internal/http/httperr"
 	"github.com/FoxFurry/GoKeyValueStore/internal/http/model"
+	"net/http"
 	"strings"
 )
 
@@ -35,14 +36,14 @@ func (s *service) Execute(modelTrns []model.Command) ([]string, error) {
 		case "SET":
 			trns = append(trns, command.Set(modelTrn.Key, modelTrn.Value))
 		default:
-			return nil, errors.New("bad command")
+			return nil, httperr.New("unknown command", http.StatusBadRequest)
 		}
 	}
 
 	result, err := s.data.Execute(trns)
 
 	if err != nil {
-		return nil, err
+		return nil, httperr.WrapHttp(err, "could not execute command", http.StatusInternalServerError)
 	}
 
 	return result, nil

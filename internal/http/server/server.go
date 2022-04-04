@@ -9,43 +9,54 @@ import (
 	"net/http"
 )
 
-type Cluster interface {
+type KeyValueServer interface {
 	Start() error
 }
 
-type cluster struct {
+type keyValueServer struct {
 	service service.Service
 }
 
-func New(ctx context.Context) Cluster {
-	return &cluster{
+func New(ctx context.Context) KeyValueServer {
+	return &keyValueServer{
 		service: service.New(ctx),
 	}
 }
 
-func (c *cluster) Start() error {
-	server := gin.Default()
+func (s *keyValueServer) Start() error {
+	gin.DisableConsoleColor()
 
-	server.POST("/execute", c.handleExecute)
+	server := gin.New()
+	server.Use(gin.Logger())
+
+	v1 := server.Group("/v1")
+	{
+		v1.POST("/execute", s.handleExecute)
+	}
 
 	server.Run()
 
 	return nil
 }
 
-func (c *cluster) handleExecute(ctx *gin.Context) {
-	var request model.TransactionRequest
+func (s *keyValueServer) handleExecute(c *gin.Context) {
+	var request = new(model.TransactionRequest)
 
-	if err := ctx.BindJSON(&request); err != nil {
-		httperr.BadRequest(ctx, httperr.Wrap(err, "could not bind request"))
+	if err := c.BindJSON(&request); err != nil {
+		httperr.Handle(c, httperr.WrapHttp(err, "could not bind request", http.StatusBadRequest))
 		return
 	}
 
-	execute, err := c.service.Execute(request.Commands)
+	if request.Commands == nil {
+		httperr.Handle(c, httperr.New("empty request", http.StatusBadRequest))
+		return
+	}
+
+	execute, err := s.service.Execute(request.Commands)
 	if err != nil {
-		httperr.InternalError(ctx, httperr.Wrap(err, "internal error"))
+		httperr.Handle(c, err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, model.TransactionResponse{Results: execute})
+	c.JSON(http.StatusOK, model.TransactionResponse{Results: execute})
 }
