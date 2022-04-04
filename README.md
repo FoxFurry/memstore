@@ -27,8 +27,6 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-DELETE: Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `github_username`, `repo_name`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `project_title`, `project_description`
-
 **This project is my personal project, and it does not offer security, consistency and other production essential feature. Do not use it in live environment**
 
 GoKeyValueStore is a simple key-value in-memory storage which uses REST API as main interface. The minimum operator of GoKeyValueStore is transaction
@@ -128,8 +126,8 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
-[license-shield]: https://img.shields.io/github/license/github_username/repo_name.svg?style=for-the-badge
-[license-url]: https://github.com/github_username/repo_name/blob/master/LICENSE.txt
+[license-shield]: https://img.shields.io/github/license/FoxFurry/GoKeyValueStore.svg?style=for-the-badge
+[license-url]: https://github.com/FoxFurry/GoKeyValueStore/blob/master/LICENSE
 
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/in/arthur-isac-412a6519b/
