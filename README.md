@@ -3,9 +3,6 @@
 
 <!-- PROJECT SHIELDS -->
 
-[![love][for-love-shield]][for-love-url]
-[![optimized][optimized-shield]][optimized-url]
-
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
