@@ -5,10 +5,10 @@ import (
 	"strings"
 )
 
-type CommandType int
+type Type int
 
 const (
-	Read CommandType = iota
+	Read Type = iota
 	Write
 )
 
@@ -24,7 +24,7 @@ const (
 // - Key should return single string which represents what Command is querying. Embed pair struct to automatically embed Key() method
 type Command interface {
 	Execute(storage *btree.BTree) (string, error)
-	Type() CommandType
+	Type() Type
 	Key() []byte
 }
 

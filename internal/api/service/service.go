@@ -1,3 +1,11 @@
+/*
+Package service
+Copyright © 2022 Arthur Isac isacartur@gmail.com
+
+Connects cluster with web interface
+
+Initializes cluster, handles mapping of http models to cluster models, wraps errors
+*/
 package service
 
 import (
@@ -10,6 +18,7 @@ import (
 	"strings"
 )
 
+// Service represents layer between web and cluster interfaces. It does only one thing: pass http model to cluster
 type Service interface {
 	Execute([]model.Command) ([]string, error)
 }
@@ -18,6 +27,8 @@ type service struct {
 	data cluster.Cluster
 }
 
+// New creates AND initializes a new service
+// TODO: Unify 'New' methods behavior. Some of them do init, some don't
 func New(ctx context.Context) Service {
 	newCluster := cluster.New()
 	newCluster.Initialize(ctx)
@@ -27,20 +38,25 @@ func New(ctx context.Context) Service {
 	}
 }
 
-func (s *service) Execute(modelTrns []model.Command) ([]string, error) {
-	var trns []command.Command
-	for _, modelTrn := range modelTrns {
+// Execute transforms http transaction into cluster transaction and passes it to cluster itself
+// Wraps errors into http errors
+//
+// TODO: Rework mapping between string value of command and actual command. I don't like this explicit SWITCH
+// TODO: Every command should have unified append behavior. Currently GET and SET have different appends
+func (s *service) Execute(httpTrns []model.Command) ([]string, error) {
+	var clusterTrns []command.Command
+	for _, modelTrn := range httpTrns {
 		switch strings.ToUpper(modelTrn.CmdType) {
 		case "GET":
-			trns = append(trns, command.Get(modelTrn.Key))
+			clusterTrns = append(clusterTrns, command.Get(modelTrn.Key))
 		case "SET":
-			trns = append(trns, command.Set(modelTrn.Key, modelTrn.Value))
+			clusterTrns = append(clusterTrns, command.Set(modelTrn.Key, modelTrn.Value))
 		default:
 			return nil, httperr.New("unknown command", http.StatusBadRequest)
 		}
 	}
 
-	result, err := s.data.Execute(trns)
+	result, err := s.data.Execute(clusterTrns) // Execute cluster transaction
 
 	if err != nil {
 		return nil, httperr.WrapHttp(err, "could not execute command", http.StatusInternalServerError)

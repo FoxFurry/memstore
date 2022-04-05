@@ -71,9 +71,22 @@ To get a local copy up and running follow these simple example steps.
 2. Install the dependencies
    ```shell
     $ go mod download
+    $ go mod tidy
     ```
 
 <p align="right">(<a href="#top">back to top</a>)</p>
+
+<!-- USAGE EXAMPLES -->
+## Usage
+
+To launch the project after copying repo, use next
+```shell
+$ go run main.go server --port=8000
+```
+Port flag can be omitted, default value is 8080
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
 
 
 
@@ -88,6 +101,8 @@ To get a local copy up and running follow these simple example steps.
 - [x] Cluster implementation
   - [x] Consistent hashing
 - [x] Basic web interface
+- [x] Add cobra CLI interface
+- [x] Add config files
 - [ ] Fix SET/GET data race
 - [ ] Fix strange `btree.Item is nil` issue
 - [ ] Improve performance

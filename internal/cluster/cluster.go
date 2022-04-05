@@ -14,6 +14,13 @@ var (
 	errExecutionFailed    = errors.New("command execution failed")
 )
 
+// hasher object for consistent hashing
+type hasher struct{}
+
+func (h hasher) Sum64(data []byte) uint64 {
+	return xxhash.Sum64(data)
+}
+
 // Cluster handles distribution of commands between nodes. Besides of array of nodes it contains consistent-hasher which
 // maps key of command to specific node.
 type Cluster interface {
@@ -72,7 +79,7 @@ func (c *cluster) Execute(transaction []command.Command) ([]string, error) {
 }
 
 // Initialize a cluster with default node array and default consistent hasher parameters.
-// It also initialize every node and starts journals
+// It also initializes every node and starts journals
 // Right now node array size is constant and not changing over-time.
 func (c *cluster) Initialize(ctx context.Context) {
 	nodeNum := 4 // TODO: Find the way to calculate best number of nodes for different situations
@@ -87,16 +94,10 @@ func (c *cluster) Initialize(ctx context.Context) {
 	c.cHasher = consistent.New(nil, hasherConfig)
 
 	for i := 0; i < nodeNum; i++ {
-		newNode := newNode(i)
-		go newNode.startJournal(ctx)
-
-		c.nodes = append(c.nodes, newNode) // Add a new page to cluster
-		c.cHasher.Add(c.nodes[i])          // And add this page to consistent hasher
+		newNode := newNode(i)        // Create new node
+		go newNode.startJournal(ctx) // Immediately start journal for this node
+		// TODO: Awkward goroutine start
+		c.nodes = append(c.nodes, newNode) // Add a new node to cluster
+		c.cHasher.Add(c.nodes[i])          // And add this node to consistent hasher
 	}
-}
-
-type hasher struct{}
-
-func (h hasher) Sum64(data []byte) uint64 {
-	return xxhash.Sum64(data)
 }

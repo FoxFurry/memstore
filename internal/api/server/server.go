@@ -26,7 +26,7 @@ func New(ctx context.Context) MemStore {
 
 func (s *memstore) Start(port string) error {
 	gin.DisableConsoleColor()
-	//gin.SetMode(gin.ReleaseMode)
+	//gin.SetMode(gin.ReleaseMode)	// TODO: Add environment variable for develop/live
 
 	server := gin.New()
 	server.Use(gin.Logger())

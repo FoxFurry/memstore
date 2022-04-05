@@ -24,7 +24,7 @@ func (c *get) Execute(storage *btree.BTree) (string, error) {
 	return resPair.value, nil
 }
 
-func (cmd *get) Type() CommandType {
+func (cmd *get) Type() Type {
 	return Read
 }
 
