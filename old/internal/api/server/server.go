@@ -2,9 +2,9 @@ package server
 
 import (
 	"context"
-	"github.com/FoxFurry/GoKeyValueStore/internal/http/httperr"
-	"github.com/FoxFurry/GoKeyValueStore/internal/http/model"
-	"github.com/FoxFurry/GoKeyValueStore/internal/http/service"
+	"github.com/FoxFurry/GoKeyValueStore/internal/api/httperr"
+	"github.com/FoxFurry/GoKeyValueStore/internal/api/model"
+	"github.com/FoxFurry/GoKeyValueStore/internal/api/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )

@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/FoxFurry/GoKeyValueStore/internal/http/server"
+	"github.com/FoxFurry/GoKeyValueStore/internal/api/server"
 	"runtime"
 )
 

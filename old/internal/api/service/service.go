@@ -2,10 +2,10 @@ package service
 
 import (
 	"context"
+	"github.com/FoxFurry/GoKeyValueStore/internal/api/httperr"
+	"github.com/FoxFurry/GoKeyValueStore/internal/api/model"
 	"github.com/FoxFurry/GoKeyValueStore/internal/cluster"
 	"github.com/FoxFurry/GoKeyValueStore/internal/command"
-	"github.com/FoxFurry/GoKeyValueStore/internal/http/httperr"
-	"github.com/FoxFurry/GoKeyValueStore/internal/http/model"
 	"net/http"
 	"strings"
 )
