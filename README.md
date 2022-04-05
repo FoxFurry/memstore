@@ -102,7 +102,7 @@ Port flag can be omitted, default value is 8080
   - [x] Consistent hashing
 - [x] Basic web interface
 - [x] Add cobra CLI interface
-- [x] Add config files
+- [ ] Add config files
 - [ ] Fix SET/GET data race
 - [ ] Fix strange `btree.Item is nil` issue
 - [ ] Improve performance
