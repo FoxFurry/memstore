@@ -6,6 +6,9 @@ Copyright © 2022 Arthur Isac isacartur@gmail.com
 package cmd
 
 import (
+	"context"
+	"fmt"
+	"github.com/FoxFurry/memstore/internal/api/server"
 	"github.com/spf13/cobra"
 )
 
@@ -17,20 +20,24 @@ var serveCmd = &cobra.Command{
 	Short: "Runs a memstore server",
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
+		if port == "" {
+			fmt.Println("Cannot use empty port")
+			return
+		}
 
+		ctx, cancel := context.WithCancel(context.Background())
+
+		storeServer := server.New(ctx)
+
+		if err := storeServer.Start(port); err != nil {
+			fmt.Printf("Unexpected error while running server: %v", err)
+		}
+		cancel()
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(serveCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// serveCmd.PersistentFlags().String("foo", "", "A help for foo")
-	serveCmd.LocalFlags().StringVarP(&port, "port", "p", "8080", "Defines port for memstore server. Default value is 8080")
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// serveCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	serveCmd.PersistentFlags().StringVarP(&port, "port", "p", "8080", "Defines port for memstore server. Default value is 8080")
 }

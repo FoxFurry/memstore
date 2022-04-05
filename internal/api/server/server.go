@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"github.com/FoxFurry/memstore/internal/api/httperr"
 	"github.com/FoxFurry/memstore/internal/api/model"
 	"github.com/FoxFurry/memstore/internal/api/service"
@@ -9,22 +10,23 @@ import (
 	"net/http"
 )
 
-type KeyValueServer interface {
-	Start() error
+type MemStore interface {
+	Start(string) error
 }
 
-type keyValueServer struct {
+type memstore struct {
 	service service.Service
 }
 
-func New(ctx context.Context) KeyValueServer {
-	return &keyValueServer{
+func New(ctx context.Context) MemStore {
+	return &memstore{
 		service: service.New(ctx),
 	}
 }
 
-func (s *keyValueServer) Start() error {
+func (s *memstore) Start(port string) error {
 	gin.DisableConsoleColor()
+	//gin.SetMode(gin.ReleaseMode)
 
 	server := gin.New()
 	server.Use(gin.Logger())
@@ -34,12 +36,12 @@ func (s *keyValueServer) Start() error {
 		v1.POST("/execute", s.handleExecute)
 	}
 
-	server.Run()
+	host := fmt.Sprintf(":%s", port)
 
-	return nil
+	return server.Run(host)
 }
 
-func (s *keyValueServer) handleExecute(c *gin.Context) {
+func (s *memstore) handleExecute(c *gin.Context) {
 	var request = new(model.TransactionRequest)
 
 	if err := c.BindJSON(&request); err != nil {
