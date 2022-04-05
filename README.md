@@ -26,7 +26,7 @@
 
 **This project is my personal project, and it does not offer security, consistency and other production essential feature. Do not use it in live environment**
 
-memstore is a simple key-value in-memory storage which uses REST API as main interface. The minimum operator of GoKeyValueStore is transaction
+memstore is a simple key-value in-memory storage which uses REST API as main interface. The minimum operator of memstore is transaction
 and transactions are atomic and isolated (like SQL transaction). Every transaction is executed multithreaded on a copy of a shard and after successful execution of all commands -
 transaction is being added to the shard queue for actual apply. Right now supported operations are only `GET` and `SET`. Despite little amount of operations, store does automatic shardering and load-balancing between
 shards. Default number of shards if 4, but in future I will add mechanism to increase or decrease amount of shards on fly. Every operation inside of transaction is mapped to
