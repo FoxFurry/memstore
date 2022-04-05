@@ -14,6 +14,8 @@ var (
 	errExecutionFailed    = errors.New("command execution failed")
 )
 
+// Cluster handles distribution of commands between nodes. Besides of array of nodes it contains consistent-hasher which
+// maps key of command to specific node.
 type Cluster interface {
 	Execute(cmds []command.Command) ([]string, error)
 	Initialize(ctx context.Context)
@@ -24,15 +26,23 @@ type cluster struct {
 	cHasher *consistent.Consistent
 }
 
+// New creates an empty cluster without initialization
 func New() Cluster {
 	return &cluster{}
 }
 
-func (c *cluster) Execute(cmds []command.Command) ([]string, error) {
-	results := make([]string, len(cmds))                          // Stores the results
-	commandsForNode := make(map[int][]command.Command, len(cmds)) // Maps all commands to their nodes
+// Execute implements atomic and fully isolated execution of a single transaction
+// For every command it uses consistent hasher to find target node based on command key, after this it creates
+// a snapshot of target node and executes command on the snapshot.
+// If error occurs - return it immediately, otherwise - append result to results array.
+// If all commands pass without errors - add commands to target node queue
+//
+// TODO: Create all variables before for-loop, not inside for-loop
+func (c *cluster) Execute(transaction []command.Command) ([]string, error) {
+	results := make([]string, len(transaction))                          // Stores the results
+	commandsPerNode := make(map[int][]command.Command, len(transaction)) // Maps all commands to their nodes
 
-	for idx, cmd := range cmds {
+	for idx, cmd := range transaction {
 		nodeString := c.cHasher.LocateKey(cmd.Key()).String() // Find node for specified key
 
 		nodeID, err := strconv.Atoi(nodeString) // Convert node string to int
@@ -50,17 +60,20 @@ func (c *cluster) Execute(cmds []command.Command) ([]string, error) {
 		results[idx] = result // Write result to results array
 
 		if cmd.Type() == command.Write {
-			commandsForNode[nodeID] = append(commandsForNode[nodeID], cmd) // Also, our journal needs only write commands
+			commandsPerNode[nodeID] = append(commandsPerNode[nodeID], cmd) // Also, our journal needs only write commands
 		}
 	}
 
-	for nodeID, commands := range commandsForNode {
+	for nodeID, commands := range commandsPerNode {
 		c.nodes[nodeID].addToJournal(commands) // The commands are valid, so we add them to execute on real storage
 	}
 
 	return results, nil
 }
 
+// Initialize a cluster with default node array and default consistent hasher parameters.
+// It also initialize every node and starts journals
+// Right now node array size is constant and not changing over-time.
 func (c *cluster) Initialize(ctx context.Context) {
 	nodeNum := 4 // TODO: Find the way to calculate best number of nodes for different situations
 
