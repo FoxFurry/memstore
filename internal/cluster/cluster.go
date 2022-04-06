@@ -1,3 +1,9 @@
+/*
+Package cluster
+Copyright © 2022 Arthur Isac isacartur@gmail.com
+
+Provides ready-to-use interface for memstore code
+*/
 package cluster
 
 import (

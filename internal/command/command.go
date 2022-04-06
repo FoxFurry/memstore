@@ -1,3 +1,12 @@
+/*
+Package command
+Copyright © 2022 Arthur Isac isacartur@gmail.com
+
+Command describes a set of actions performed on a btree. Each command is isolated from other commands and can only
+affect one shard.
+
+TODO: Remake commands to support work with multiple shards
+*/
 package command
 
 import (
@@ -5,6 +14,11 @@ import (
 	"strings"
 )
 
+// Type represents which mutex behavior will be used for a command.
+//
+// - Read = 0		- command only reads from storage without altering it. Locks read mutex
+//
+// - Write = 1	- command can alter the storage. Locks read and write mutex
 type Type int
 
 const (
