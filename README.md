@@ -85,6 +85,8 @@ $ go run main.go server --port=8000
 ```
 Port flag can be omitted, default value is 8080
 
+Documentation: https://pkg.go.dev/github.com/FoxFurry/memstore
+
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 
