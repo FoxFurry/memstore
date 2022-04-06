@@ -1,9 +1,7 @@
 /*
 Package service
-Copyright © 2022 Arthur Isac isacartur@gmail.com
 
-Connects cluster with web interface
-
+Connects cluster with web interface.
 Initializes cluster, handles mapping of http models to cluster models, wraps errors
 */
 package service

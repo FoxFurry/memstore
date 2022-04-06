@@ -1,6 +1,5 @@
 /*
 Package model
-Copyright © 2022 Arthur Isac isacartur@gmail.com
 
 Describes HTTP models for requests and responses
 */

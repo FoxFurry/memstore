@@ -1,6 +1,5 @@
 /*
 Package command
-Copyright © 2022 Arthur Isac isacartur@gmail.com
 
 Command describes a set of actions performed on a btree. Each command is isolated from other commands and can only
 affect one shard.

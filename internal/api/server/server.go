@@ -1,6 +1,5 @@
 /*
 Package server
-Copyright © 2022 Arthur Isac isacartur@gmail.com
 
 Describes http layer which wraps service layer. Provides a server interface with single Start method
 */

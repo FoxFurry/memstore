@@ -1,6 +1,5 @@
 /*
 Package httperr
-Copyright © 2022 Arthur Isac isacartur@gmail.com
 
 Responsible for creating easy way of passing both error message and status code to handler
 */
