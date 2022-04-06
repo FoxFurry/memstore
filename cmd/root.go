@@ -1,6 +1,5 @@
 /*
 Package cmd
-Copyright © 2022 Arthur Isac isacartur@gmail.com
 
 */
 package cmd
