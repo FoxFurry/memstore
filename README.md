@@ -71,7 +71,6 @@ To get a local copy up and running follow these simple example steps.
 2. Install the dependencies
    ```shell
     $ go mod download
-    $ go mod tidy
     ```
 
 <p align="right">(<a href="#top">back to top</a>)</p>
