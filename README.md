@@ -80,7 +80,7 @@ To get a local copy up and running follow these simple example steps.
 
 To launch the project after copying repo, use next
 ```shell
-$ go run main.go server --port=8000
+$ go run main.go serve --port=8000
 ```
 Port flag can be omitted, default value is 8080
 
