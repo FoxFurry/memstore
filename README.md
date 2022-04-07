@@ -110,7 +110,7 @@ Response
     ]
 }
 ```
-****
+---
 ### SET
 
 **POST /v1/execute**
@@ -142,7 +142,7 @@ Response
   ]
 }
 ```
-****
+---
 ### ERROR
 
 **POST /v1/execute**
@@ -186,9 +186,13 @@ Response
 - [ ] Add config files
 - [x] Fix SET/GET data race
 - [ ] Fix strange `btree.Item is nil` issue
+- [ ] Add unit tests
 - [ ] Improve performance
   - [ ] Under 100ns for GET
   - [ ] Under 200ns for SET
+- [ ] Dynamic node number
+  - [ ] Optimal node number calculator
+  - [ ] Node rebalancing mechanism
 - [ ] To be continued ...
 
 <p align="right">(<a href="#top">back to top</a>)</p>
