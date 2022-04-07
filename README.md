@@ -31,10 +31,10 @@ and transactions are atomic and isolated (like SQL transaction). Every transacti
 transaction is being added to the shard queue for actual apply. Right now supported operations are only `GET` and `SET`. Despite little amount of operations, store does automatic shardering and load-balancing between
 shards. Default number of shards if 4, but in future I will add mechanism to increase or decrease amount of shards on fly. Every operation inside of transaction is mapped to
 exact shard using consistent hashing. Let me explain some terms used in this project:
-- Node: A minimal working unit containing storage and queue element. You can consider node as a shard
+- Node: A minimal working unit containing storage and queue element. You can consider node as a shard (in SQL it is also called **Page**)
 - Node Queue: A single-threaded queue mechanism which allows executing transactions 100% atomically
-- Node snapshot: A very fast copy of node used to test commands before adding them to Node Queue
-- Cluster: set of nodes which handles load distribution between them
+- Node snapshot: A very fast copy of node used to test commands before adding them to Node Queue 
+- Cluster: set of nodes which handles load distribution between them (in SQL it is also called **Partition**)
 
 The project is in working condition, but still a lot of work is required
 
