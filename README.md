@@ -90,6 +90,92 @@ Documentation: https://pkg.go.dev/github.com/FoxFurry/memstore
 
 
 
+## API description
+****
+### GET
+
+**POST /v1/execute**
+
+Request
+```json
+{
+  "commands": [
+    {
+      "cmd_type": "get",
+      "key": "foo"
+    }
+  ]
+}
+```
+
+Response
+```json
+{
+    "results": [
+        "bar"
+    ]
+}
+```
+****
+### SET
+
+**POST /v1/execute**
+
+Request
+```json
+{
+  "commands": [
+    {
+      "cmd_type": "set",
+      "key": "foo",
+      "value": "bar"
+    },
+    {
+      "cmd_type": "set",
+      "key": "foo2",
+      "value": "bar2"
+    }
+  ]
+}
+```
+
+Response
+```json
+{
+  "results": [
+    "bar",
+    "bar2"
+  ]
+}
+```
+****
+### ERROR
+
+**POST /v1/execute**
+
+Request
+```json
+{
+  "commands": [
+    {
+      "cmd_type": "will_cause_error",
+      "key": "any",
+      "value": "literally"
+    }
+  ]
+}
+```
+
+Response
+```json
+{
+  "error": "unknown command"
+}
+```
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+
 
 <!-- ROADMAP -->
 ## Roadmap
