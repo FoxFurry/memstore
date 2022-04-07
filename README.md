@@ -36,17 +36,6 @@ exact shard using consistent hashing. The project is in working condition, but s
 
 
 
-## Dependencies
-
-* [github.com/buraksezer/consistent](https://github.com/buraksezer/consistent)
-* [github.com/cespare/xxhash](https://github.com/cespare/xxhash)
-* [github.com/gin-gonic/gin](https://github.com/gin-gonic/gin)
-* [github.com/google/btree](https://github.com/google/btree)
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
 <!-- GETTING STARTED -->
 ## Getting Started
 
@@ -91,7 +80,6 @@ Documentation: https://pkg.go.dev/github.com/FoxFurry/memstore
 
 
 ## API description
-****
 ### GET
 
 **POST /v1/execute**
@@ -183,7 +171,7 @@ Response
 - [x] Basic command execution
 - [x] Node implementation
   - [x] Node itself
-  - [x] Node journal mechanism
+  - [x] Node queue mechanism
   - [x] Node copying mechanism
 - [x] Cluster implementation
   - [x] Consistent hashing
@@ -201,16 +189,23 @@ Response
 
 
 
+## Dependencies
+
+* [github.com/buraksezer/consistent](https://github.com/buraksezer/consistent)
+* [github.com/cespare/xxhash](https://github.com/cespare/xxhash)
+* [github.com/gin-gonic/gin](https://github.com/gin-gonic/gin)
+* [github.com/google/btree](https://github.com/google/btree)
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+
+
 <!-- LICENSE -->
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-
 
 
 
@@ -230,9 +225,3 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/in/arthur-isac-412a6519b/
-
-[for-love-shield]: https://forthebadge.com/images/badges/built-with-love.svg
-[for-love-url]: https://github.com/FoxFurry
-
-[optimized-shield]: https://forthebadge.com/images/badges/0-percent-optimized.svg
-[optimized-url]: https://docs.microsoft.com/en-us/previous-versions/sql/sql-server-2008-r2/cc280361(v=sql.105)

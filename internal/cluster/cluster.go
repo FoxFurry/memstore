@@ -82,19 +82,19 @@ func (c *cluster) Execute(transaction []command.Command) ([]string, error) {
 		results = append(results, resultBuffer) // Write result to results array
 
 		if cmd.Type() == command.Write {
-			commandsPerNode[nodeID] = append(commandsPerNode[nodeID], cmd) // Also, our journal needs only write commands
+			commandsPerNode[nodeID] = append(commandsPerNode[nodeID], cmd) // Also, our queue needs only write commands
 		}
 	}
 
 	for nodeID, cmds = range commandsPerNode {
-		c.nodes[nodeID].addToJournal(cmds) // The commands are valid, so we add them to execute on real storage
+		c.nodes[nodeID].addToQueue(cmds) // The commands are valid, so we add them to execute on real storage
 	}
 
 	return results, nil
 }
 
 // Initialize a cluster with default node array and default consistent hasher parameters.
-// It also initializes every node and starts journals
+// It also initializes every node and starts queues
 // Right now node array size is constant and not changing over-time.
 func (c *cluster) Initialize(ctx context.Context) {
 	nodeNum := 4 // TODO: Find the way to calculate best number of nodes for different situations
@@ -109,8 +109,8 @@ func (c *cluster) Initialize(ctx context.Context) {
 	c.cHasher = consistent.New(nil, hasherConfig)
 
 	for i := 0; i < nodeNum; i++ {
-		newNode := newNode(i)        // Create new node
-		go newNode.startJournal(ctx) // Immediately start journal for this node
+		newNode := newNode(i)              // Create new node
+		go newNode.startQueueListener(ctx) // Immediately start queue for this node
 		// TODO: Awkward goroutine start
 		c.nodes = append(c.nodes, newNode) // Add a new node to cluster
 		c.cHasher.Add(c.nodes[i])          // And add this node to consistent hasher

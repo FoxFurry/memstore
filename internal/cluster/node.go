@@ -12,10 +12,10 @@ import (
 // inode represents interface of a shard (node)
 // TODO: research if using interfaces slows down execution
 type inode interface {
-	startJournal(ctx context.Context)
+	startQueueListener(ctx context.Context)
 
 	execute(cmd command.Command) (string, error)
-	addToJournal(block []command.Command)
+	addToQueue(block []command.Command)
 	snapshot() inode
 	String() string
 }
@@ -24,7 +24,7 @@ type node struct {
 	storageMutex sync.RWMutex
 	storage      *btree.BTree
 	nodeID       int
-	journalQueue chan []command.Command
+	nodeQueue    chan []command.Command
 }
 
 func newNode(ID int) inode {
@@ -32,7 +32,7 @@ func newNode(ID int) inode {
 		nodeID:       ID,
 		storage:      btree.New(4), // TODO: Why do I use 4?
 		storageMutex: sync.RWMutex{},
-		journalQueue: make(chan []command.Command, 50), // TODO: Why 50??? So many questions
+		nodeQueue:    make(chan []command.Command, 50), // TODO: Why 50??? So many questions
 	}
 
 	return n
@@ -52,9 +52,9 @@ func (n *node) execute(cmd command.Command) (string, error) {
 	return cmd.Execute(n.storage)
 }
 
-// addToJournal adds transaction to journal queue
-func (n *node) addToJournal(transaction []command.Command) {
-	n.journalQueue <- transaction
+// addToQueue adds transaction to queue
+func (n *node) addToQueue(transaction []command.Command) {
+	n.nodeQueue <- transaction
 }
 
 // snapshot creates a fast copy of a node itself. snapshot is thread-safe method
@@ -69,12 +69,12 @@ func (n *node) snapshot() inode {
 	}
 }
 
-// startJournal starts a listener for journal queue, executing transactions from it
-func (n *node) startJournal(ctx context.Context) {
-	log.Printf("Starting journal %d\n", n.nodeID)
+// startQueueListener listens for incoming transactions and executes them
+func (n *node) startQueueListener(ctx context.Context) {
+	log.Printf("Starting queue listener %d\n", n.nodeID)
 	for {
 		select {
-		case transaction := <-n.journalQueue: // Get transaction from queue
+		case transaction := <-n.nodeQueue: // Get transaction from queue
 			// TODO: Test per-transaction mutex vs per-command mutex
 			for _, cmd := range transaction { // Go through every command in transaction
 				_, err := cmd.Execute(n.storage) // Execute each command. We don't care about result here
@@ -84,7 +84,7 @@ func (n *node) startJournal(ctx context.Context) {
 			}
 
 		case <-ctx.Done():
-			log.Printf("Stopping journal %d\n", n.nodeID)
+			log.Printf("Stopping queue listener %d\n", n.nodeID)
 			return
 		}
 	}
