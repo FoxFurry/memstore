@@ -54,6 +54,8 @@ func (c *cluster) Execute(transaction []command.Command) ([]string, error) {
 	results := make([]string, len(transaction))                          // Stores the results
 	commandsPerNode := make(map[int][]command.Command, len(transaction)) // Maps all commands to their nodes
 
+	existingNodeCopies := make(map[int]inode, len(c.nodes)) // This map will help avoid getting snapshots of same node
+
 	for idx, cmd := range transaction {
 		nodeString := c.cHasher.LocateKey(cmd.Key()).String() // Find node for specified key
 
@@ -62,7 +64,13 @@ func (c *cluster) Execute(transaction []command.Command) ([]string, error) {
 			return nil, errIdConversionFailed
 		}
 
-		targetNode := c.nodes[nodeID].snapshot()
+		var targetNode inode
+		if _, ok := existingNodeCopies[nodeID]; ok { // if we already made a snapshot - use it
+			targetNode = existingNodeCopies[nodeID]
+		} else {
+			targetNode = c.nodes[nodeID].snapshot() // Otherwise - take a snapshot and save it to the map
+			existingNodeCopies[nodeID] = targetNode
+		}
 
 		result, err := targetNode.execute(cmd) // Execute command on snapshot of selected page
 		if err != nil {
@@ -91,7 +99,7 @@ func (c *cluster) Initialize(ctx context.Context) {
 
 	hasherConfig := consistent.Config{
 		Hasher:            hasher{},
-		PartitionCount:    271,
+		PartitionCount:    271, // TODO: Learn how to find perfect values for hasher config
 		ReplicationFactor: 40,
 		Load:              1.2,
 	}

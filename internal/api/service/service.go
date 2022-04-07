@@ -43,19 +43,19 @@ func New(ctx context.Context) Service {
 // TODO: Every command should have unified append behavior. Currently GET and SET have different appends
 func (s *service) Execute(httpTrns []model.Command) ([]string, error) {
 	var clusterTrns []command.Command
-	for _, modelTrn := range httpTrns {
-		switch strings.ToUpper(modelTrn.CmdType) {
+
+	for _, httpCommand := range httpTrns {
+		switch strings.ToUpper(httpCommand.CmdType) {
 		case "GET":
-			clusterTrns = append(clusterTrns, command.Get(modelTrn.Key))
+			clusterTrns = append(clusterTrns, command.Get(httpCommand.Key))
 		case "SET":
-			clusterTrns = append(clusterTrns, command.Set(modelTrn.Key, modelTrn.Value))
+			clusterTrns = append(clusterTrns, command.Set(httpCommand.Key, httpCommand.Value))
 		default:
 			return nil, httperr.New("unknown command", http.StatusBadRequest)
 		}
 	}
 
 	result, err := s.data.Execute(clusterTrns) // Execute cluster transaction
-
 	if err != nil {
 		return nil, httperr.WrapHttp(err, "could not execute command", http.StatusInternalServerError)
 	}
