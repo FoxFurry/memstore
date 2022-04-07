@@ -1,7 +1,3 @@
-/*
-Package cmd
-
-*/
 package cmd
 
 import (
@@ -31,6 +27,7 @@ var serveCmd = &cobra.Command{
 		if err := storeServer.Start(port); err != nil {
 			fmt.Printf("Unexpected error while running server: %v", err)
 		}
+
 		cancel()
 	},
 }

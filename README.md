@@ -190,7 +190,7 @@ Response
 - [x] Basic web interface
 - [x] Add cobra CLI interface
 - [ ] Add config files
-- [ ] Fix SET/GET data race
+- [x] Fix SET/GET data race
 - [ ] Fix strange `btree.Item is nil` issue
 - [ ] Improve performance
   - [ ] Under 100ns for GET

@@ -1,5 +1,5 @@
 run:
-	go run main.go
+	go run main.go serve -p=8080
 
 build:
 	go build -o bin/gostore
