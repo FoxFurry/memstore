@@ -48,18 +48,20 @@ func New() Cluster {
 // a snapshot of target node and executes command on the snapshot.
 // If error occurs - return it immediately, otherwise - append result to results array.
 // If all commands pass without errors - add commands to target node queue
-//
-// TODO: Create all variables before for-loop, not inside for-loop
 func (c *cluster) Execute(transaction []command.Command) ([]string, error) {
-	results := make([]string, len(transaction))                          // Stores the results
-	commandsPerNode := make(map[int][]command.Command, len(transaction)) // Maps all commands to their nodes
+	var ( // Declare all variables before loop
+		results            = make([]string, 0, len(transaction))               // Stores the results
+		commandsPerNode    = make(map[int][]command.Command, len(transaction)) // Maps all commands to their nodes
+		existingNodeCopies = make(map[int]inode, len(c.nodes))                 // This map will help avoid getting snapshots of same node
+		cmd                command.Command
+		cmds               []command.Command
+		nodeID             int
+		resultBuffer       string
+		err                error
+	)
 
-	existingNodeCopies := make(map[int]inode, len(c.nodes)) // This map will help avoid getting snapshots of same node
-
-	for idx, cmd := range transaction {
-		nodeString := c.cHasher.LocateKey(cmd.Key()).String() // Find node for specified key
-
-		nodeID, err := strconv.Atoi(nodeString) // Convert node string to int
+	for _, cmd = range transaction { // Find node for specified key
+		nodeID, err = strconv.Atoi(c.cHasher.LocateKey(cmd.Key()).String()) // Convert node string to int
 		if err != nil {
 			return nil, errIdConversionFailed
 		}
@@ -72,20 +74,20 @@ func (c *cluster) Execute(transaction []command.Command) ([]string, error) {
 			existingNodeCopies[nodeID] = targetNode
 		}
 
-		result, err := targetNode.execute(cmd) // Execute command on snapshot of selected page
+		resultBuffer, err = targetNode.execute(cmd) // Execute command on snapshot of selected page
 		if err != nil {
 			return nil, err
 		}
 
-		results[idx] = result // Write result to results array
+		results = append(results, resultBuffer) // Write result to results array
 
 		if cmd.Type() == command.Write {
 			commandsPerNode[nodeID] = append(commandsPerNode[nodeID], cmd) // Also, our journal needs only write commands
 		}
 	}
 
-	for nodeID, commands := range commandsPerNode {
-		c.nodes[nodeID].addToJournal(commands) // The commands are valid, so we add them to execute on real storage
+	for nodeID, cmds = range commandsPerNode {
+		c.nodes[nodeID].addToJournal(cmds) // The commands are valid, so we add them to execute on real storage
 	}
 
 	return results, nil
