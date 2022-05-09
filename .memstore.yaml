@@ -1,0 +1,7 @@
+journal:
+  enable: true
+  recoverOnStartup: true
+  path: "./.journal.memstore"
+
+
+

@@ -185,6 +185,7 @@ Response
 - [x] Add cobra CLI interface
 - [ ] Add config files
 - [x] Fix SET/GET data race
+- [ ] Add logging mechanism to imitate persistence
 - [ ] Fix strange `btree.Item is nil` issue
 - [ ] Add unit tests
 - [ ] Improve performance
